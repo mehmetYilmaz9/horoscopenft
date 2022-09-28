@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Contract, providers } from "ethers";
 
+import NFT from "../src/abi/horoscopeNFT.json";
+
+const  NFT_CONTRACT_ADDRESS = "0xAc1a22f7F5B6730D421708A4eDCD0e8a2f8A7fCe";
 
 function App() {
   const [isWalletInstalled, setIsWalletInstalled] = useState(false);
@@ -11,18 +14,19 @@ function App() {
 
   // state for keeping track of current connected account.
   const [account, setAccount] = useState(null);
-
   // state for whether app is minting or not.
   const [isMinting, setIsMinting] = useState(false);
-
   const [NFTContract, setNFTContract] = useState(null);
-
 
   useEffect(() => {
     if (window.ethereum) {
       setIsWalletInstalled(true);
     }
   }, []);
+
+  function handleDateInput({ target }) {
+    setDate(target.value);
+  }
 
   async function connectWallet() {
     window.ethereum
@@ -35,10 +39,6 @@ function App() {
       .catch((error) => {
         alert("Something went wrong");
       });
-  }
-
-  function handleDateInput({ target }) {
-    setDate(target.value);
   }
 
   function calculateZodiacSign(date) {
@@ -124,9 +124,24 @@ function App() {
     calculateZodiacSign(date);
    },[date]);
 
- function handleDateInput({ target }) {
-   setDate(target.value);
+  useEffect(() => {
+    function initNFTContract() {
+        const provider = new providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        setNFTContract(new Contract(NFT_CONTRACT_ADDRESS, NFT.abi, signer));
+    }
+    initNFTContract();
+}, [account]);
+
+async function mintNFT() {
+  setIsMinting(true);
+  try {
+      await NFTContract.mintNFT(account, zodiacSign);
+  } catch (e) {
+  } finally {
+      setIsMinting(false);
   }
+}
 
   if (account === null) {
       return (
@@ -158,31 +173,40 @@ function App() {
           <input className="" onChange={handleDateInput} value={date} type="date" id="dob"/>
           <br />
           <br />
-              {zodiacSign ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  preserveAspectRatio="xMinYMin meet"
-                  viewBox="0 0 300 300"
-                  width="400px"
-                  height="400px"
+          <div className="flex justify-center">
+            {zodiacSign ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                preserveAspectRatio="xMinYMin meet"
+                viewBox="0 0 300 300"
+                width="400px"
+                height="400px"
+              >
+                <style>{`.base { fill: white; font-family: serif; font-size: 24px;`}</style>
+                <rect width="100%" height="100%" fill="black" />
+                <text
+                  x="50%"
+                  y="50%"
+                  class="base"
+                  dominant-baseline="middle"
+                  text-anchor="middle"
                 >
-                  <style>{`.base { fill: white; font-family: serif; font-size: 24px;`}</style>
-                  <rect width="100%" height="100%" fill="black" />
-                  <text
-                    x="50%"
-                    y="50%"
-                    class="base"
-                    dominant-baseline="middle"
-                    text-anchor="middle"
-                  >
-                    {zodiacSign}
-                  </text>
-                </svg>
-              ) : null}
+                  {zodiacSign}
+                </text>
+              </svg>
+            ) : null}
+          </div>
+             
               
+          <br/>
               <br/>
-              <br/>
-              <button className="bg-blue-500 hover:bg-blue-700  text-white font-bold py-2 px-4 rounded-full">Mint</button>
+              <button 
+                className="bg-blue-500 hover:bg-blue-700  text-white font-bold py-2 px-4 rounded-full"
+                isLoading={isMinting} onClick={mintNFT}
+                >Mint
+              </button>
+
+
           </div>
       </div>
   
