@@ -170,7 +170,7 @@ async function mintNFT() {
       <div className="flex flex-col">
         <h1 className="flex justify-center	">Horoscope NFT Minting Dapp</h1> 
         <p className="italic text-gray-700">Connected as: {account}</p>
-          <input className="" onChange={handleDateInput} value={date} type="date" id="dob"/>
+          <input className="block w-full px-3 py-1.5 text-base font-normal text-gray-700 border border-solid border-gray-300" onChange={handleDateInput} value={date} type="date" id="dob"/>
           <br />
           <br />
           <div className="flex justify-center">
